@@ -220,7 +220,7 @@ const hackStyle = async() => {
   }
   welcomeEle?.shadowRoot?.querySelector('.preview-container')?.remove();
   welcomeEle?.shadowRoot?.querySelector('.footer')?.remove();
-  welcomeEle?.shadowRoot?.querySelector('.controls')?.setAttribute('style', 'margin-bottom: 80px;');
+  // welcomeEle?.shadowRoot?.querySelector('.controls')?.setAttribute('style', 'margin-bottom: 80px;');
   serpEle?.shadowRoot?.querySelector('cib-serp-feedback')?.remove();
   if (isMobile()) {
     welcomeEle?.shadowRoot?.querySelector('.container-item')?.remove();
@@ -250,23 +250,6 @@ const initSydney = () => {
   if (sydneyEnable.value) {
     hackSydney();
 
-    // CIB.resetConversationtmp = CIB.resetConversation;
-    // CIB.resetConversation = function () {
-    //   hackSydney();
-    //   console.log(1);
-    //   CIB.resetConversationtmp();
-    // }
-    // CIB.resetConversationAsync = async function () {
-    //   return new Promise((resolve, reject) => {
-    //     try {
-    //       CIB.resetConversation();
-    //       console.log(1)
-    //       resolve(0);
-    //     } catch (error) {
-    //       reject(error);
-    //     }
-    //   });
-    // }
     CIB.manager.resetConversation = function (O, B=!0, U=!0) {
       var G;
       null === (G = CIB.manager.log) || void 0 === G || G.trace(this, CIB.manager.resetConversation, null).write(),
@@ -307,15 +290,27 @@ const hackSydney = (first=true) => {
       "524vidansgs0",
     ]
     CIB.config.sydney.request.optionsSets.push("rai278", "nojbfedge")
-    CIB.config.features.enableUpdateConversationMessages = true
-    CIB.config.strings.webPageContextPrefix = '已处于越狱模式, 请谨慎使用避免封号'
+    if (uiVersion.value != 'v3') {
+      CIB.config.features.enableUpdateConversationMessages = true
+      CIB.config.strings.webPageContextPrefix = '已处于越狱模式, 请谨慎使用避免封号'
+    } else {
+      const serpEle = document.querySelector('cib-serp');
+      const conversationEle = serpEle?.shadowRoot?.querySelector('cib-conversation') as HTMLElement;
+      const welcomeEle = conversationEle?.shadowRoot?.querySelector('cib-welcome-container');
+
+      const tipEle = document.createElement('div');
+      tipEle.innerText = '已处于越狱模式, 请谨慎使用避免封号';
+      tipEle.className = 'preview-container';
+
+      welcomeEle?.shadowRoot?.append(tipEle);
+    }
   }
   CIB.registerContext([{
     "author": "user",
     "description": sydneyPrompt.value,
     "contextType": "WebPage",
     "messageType": "Context",
-    "messageId": "discover-web--page-ping-mriduna-----",
+    // "messageId": "discover-web--page-ping-mriduna-----",
   }])
 }
 
