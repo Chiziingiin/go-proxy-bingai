@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref, computed, h } from 'vue';
-import { NEmpty, NButton, useDialog, useMessage, NResult, NInput, NAlert, NModal} from 'naive-ui';
+import { NEmpty, NButton, useDialog, useMessage, NResult, NInput, NAlert, NModal, NPopover, NVirtualList} from 'naive-ui';
 import conversationCssText from '@/assets/css/conversation.css?raw';
 import { usePromptStore, type IPrompt } from '@/stores/modules/prompt';
 import { storeToRefs } from 'pinia';
-import VirtualList from 'vue3-virtual-scroll-list';
 import ChatPromptItem from './ChatPromptItem.vue';
 import { isMobile } from '@/utils/utils';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner.vue';
@@ -456,31 +455,35 @@ const auth = async () => {
 <template>
   <LoadingSpinner :is-show="isShowLoading" />
   <main>
-    <div
-      v-if="isShowChatPrompt"
-      class="box-border fixed bottom-[110px] w-full flex justify-center px-[14px] md:px-[34px] z-999"
-      :class="{
-        'md:px-[170px]': isShowHistory,
-        'xl:px-[220px]': isShowHistory,
-      }"
+    <NPopover
+      trigger="manual"
+      :show="isShowChatPrompt"
+      :show-arrow="false"
+      class="max-w-[1060px] max-h-[390px]"
+      :to="false"
     >
+      <template #trigger>
+        <NButton style="position: fixed; left: 20px; bottom: 80px; z-index: -1;" />
+      </template>
       <div class="w-0 md:w-[60px]"></div>
-      <VirtualList
-        ref="scrollbarRef"
+      <NVirtualList
         v-if="promptList.length > 0"
-        class="bg-white w-full max-w-[1060px] max-h-[390px] rounded-xl overflow-y-auto"
-        :data-key="'prompt'"
-        :data-sources="searchPromptList"
-        :data-component="ChatPromptItem"
-        :keeps="10"
+        class="w-full max-w-[1060px] max-h-[390px] overflow-y-auto"
+        :item-size="131"
+        item-resizable
+        :items="promptList"
         @scroll="handlePromptListScroll"
-      />
-      <NEmpty v-else class="bg-white w-full max-w-[1060px] max-h-[390px] rounded-xl py-6" description="暂未设置提示词数据">
+      >
+        <template #default="{ item, index }">
+          <ChatPromptItem :index="index" :source="item" />
+        </template>
+      </NVirtualList>
+      <NEmpty v-else class="w-full max-w-[1060px] max-h-[390px] rounded-xl py-6" description="暂未设置提示词数据">
         <template #extra>
           <NButton secondary type="info" @click="isShowPromptSotre = true">去提示词库添加</NButton>
         </template>
       </NEmpty>
-    </div>
+    </NPopover>
   </main>
   <footer>
     <!-- 服务器选择 -->
