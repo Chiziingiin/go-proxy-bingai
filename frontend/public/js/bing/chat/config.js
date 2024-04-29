@@ -460,6 +460,9 @@ _w['_sydConvConfig'] = {
   multimediaSearchFormCode: 'IACMIR',
   multimediaSearchEnableMediaCanvas: true,
   multimediaSearchMaxImageCount: 5,
+  // GPT 4 Turbo
+  enableTurboTone: false,
+  enableGPT4TurboSwitch: false,
 };
 _w['_sydThreads'] = {
   threads: [],
@@ -1647,6 +1650,11 @@ if (UserStoreGet('enterpriseEnable')) {
   _w['_sydConvTranslation']['warmWelcomeTitle'] = 'Bing Chat Enterprise'
   _w['_sydConvTranslation']['welcomeSubtitleText'] = '由 AI 支持的适用于 Web 的 Copilot'
   _w['_sydConvTranslation']['inputRaiLabel'] = '你的个人和公司数据在此聊天中受到保护'
+}
+
+if (UserStoreGet('copilotProEnable')) {
+  _w['_sydConvConfig']['enableTurboTone'] = true
+  _w['_sydConvConfig']['enableGPT4TurboSwitch'] = true
 }
 
 _G.Region = UserStoreGet('langRegion') || 'CN'

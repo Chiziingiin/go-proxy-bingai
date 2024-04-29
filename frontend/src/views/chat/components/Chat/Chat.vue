@@ -45,7 +45,7 @@ const isShowHistory = computed(() => {
   return (CIB.vm.isMobile && CIB.vm.sidePanel.isVisibleMobile) || (!CIB.vm.isMobile && CIB.vm.sidePanel.isVisibleDesktop);
 });
 
-const { themeMode, uiVersion, gpt4tEnable, sydneyEnable, sydneyPrompt, enterpriseEnable } = storeToRefs(userStore);
+const { themeMode, uiVersion, gpt4tEnable, sydneyEnable, sydneyPrompt, enterpriseEnable, copilotProEnable } = storeToRefs(userStore);
 
 onMounted(async () => {
   await initChat();
@@ -243,6 +243,9 @@ const hackEnterprise = () => {
 }
 
 const initSydney = () => {
+  if (copilotProEnable.value) {
+    hackCopilotPro();
+  }
   if (gpt4tEnable.value) {
     hackG4t();
   }
@@ -259,8 +262,20 @@ const initSydney = () => {
   }
 }
 
+const hackCopilotPro = () => {
+  CIB.config.sydney.request.source = 'cib-ccp'
+}
+
 const hackG4t = () => {
-  CIB.config.sydney.request.optionsSets.push("dlgpt4t")
+  CIB.config.sydney.request.optionsSets.push(
+    "dlgpt4t", 
+    "dlbmtc",
+    "dlbpc4575",
+    "dlbrngnp",
+    "dlbtc",
+    "dlbuc07",
+    "dlbuf03"
+  )
 }
 
 const hackSydney = (first=true) => {

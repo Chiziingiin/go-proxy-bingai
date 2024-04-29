@@ -25,6 +25,7 @@ export const useUserStore = defineStore(
     const langRegion = ref('CN');
     const autoReopenMic = ref(true);
     const enterpriseEnable = ref(false);
+    const copilotProEnable = ref(false);
     const customChatNum = ref(0);
     const gpt4tEnable = ref(true);
     const sydneyEnable = ref(false);
@@ -200,6 +201,7 @@ export const useUserStore = defineStore(
       langRegion,
       autoReopenMic,
       enterpriseEnable,
+      copilotProEnable,
       customChatNum,
       gpt4tEnable,
       sydneyEnable,
@@ -211,7 +213,7 @@ export const useUserStore = defineStore(
     persist: {
       key: 'user-store',
       storage: localStorage,
-      paths: ['historyEnable', 'themeMode', 'uiVersion', 'langRegion', 'autoReopenMic', 'fullCookiesEnable', 'cookiesStr', 'enterpriseEnable', 'customChatNum', 'gpt4tEnable', 'sydneyEnable', 'sydneyPrompt', 'passServer'],
+      paths: ['historyEnable', 'themeMode', 'uiVersion', 'langRegion', 'autoReopenMic', 'fullCookiesEnable', 'cookiesStr', 'enterpriseEnable', 'copilotProEnable', 'customChatNum', 'gpt4tEnable', 'sydneyEnable', 'sydneyPrompt', 'passServer'],
     },
   }
 );
