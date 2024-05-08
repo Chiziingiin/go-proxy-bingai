@@ -42,7 +42,7 @@ jobs:
           echo "BODY=Released on $(date +%Y-%m-%d)" >> $GITHUB_ENV
           DATE=$(date +%Y.%m.%d)
           sed -i "s/\"version\": \".*\"/\"version\": \"$DATE-nightly\"/g" frontend/package.json
-          sed -i 's|go-proxy-bingai/releases/latest|go-proxy-bingai/releases/download/nightly|g' .devcontainer/Dockerfile
+          sed -i 's|go-proxy-bingai/releases/latest/download|go-proxy-bingai/releases/download/nightly|g' .devcontainer/Dockerfile
 
       - name: Build Frontend
         run: |
