@@ -478,7 +478,7 @@ const auth = async () => {
       :to="false"
     >
       <template #trigger>
-        <NButton style="position: fixed; left: 20px; bottom: 80px; z-index: -1;" />
+        <NButton style="position: fixed; left: 20px; bottom: 80px; z-index: -1; opacity: 0;" />
       </template>
       <div class="w-0 md:w-[60px]"></div>
       <NVirtualList
