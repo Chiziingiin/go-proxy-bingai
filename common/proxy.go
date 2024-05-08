@@ -63,15 +63,16 @@ var (
 		"https://cn.bing.com",
 		"https://www.bing.com",
 	}
-	USER_TOKEN_COOKIE_NAME          = "_U"
-	USER_KievRPSSecAuth_COOKIE_NAME = "KievRPSSecAuth"
-	User_MUID_COOKIE_NAME           = "MUID"
-	USER_RwBf_COOKIE_NAME           = "_RwBf"
-	RAND_COOKIE_INDEX_NAME          = "BingAI_Rand_CK"
-	RAND_IP_COOKIE_NAME             = "BingAI_Rand_IP"
-	PASS_SERVER_COOKIE_NAME         = "BingAI_Pass_Server"
-	PROXY_WEB_PREFIX_PATH           = "/web/"
-	PROXY_WEB_PAGE_PATH             = PROXY_WEB_PREFIX_PATH + "index.html"
+	USER_TOKEN_COOKIE_NAME                 = "_U"
+	USER_KievRPSSecAuth_COOKIE_NAME        = "KievRPSSecAuth"
+	User_MUID_COOKIE_NAME                  = "MUID"
+	USER_RwBf_COOKIE_NAME                  = "_RwBf"
+	CLOUDFLARE_CHALLENGE_TOKEN_COOKIE_NAME = "cct"
+	RAND_COOKIE_INDEX_NAME                 = "BingAI_Rand_CK"
+	RAND_IP_COOKIE_NAME                    = "BingAI_Rand_IP"
+	PASS_SERVER_COOKIE_NAME                = "BingAI_Pass_Server"
+	PROXY_WEB_PREFIX_PATH                  = "/web/"
+	PROXY_WEB_PAGE_PATH                    = PROXY_WEB_PREFIX_PATH + "index.html"
 
 	DEBUG_PROXY_WEB, _ = url.Parse("http://localhost:4000")
 )
@@ -97,20 +98,26 @@ func NewSingleHostReverseProxy(target *url.URL) *httputil.ReverseProxy {
 		req.URL.Host = target.Host
 		req.Host = target.Host
 
+		cct, _ := req.Cookie(CLOUDFLARE_CHALLENGE_TOKEN_COOKIE_NAME)
+		ckRandIP, _ := req.Cookie(RAND_IP_COOKIE_NAME) // 同一会话尽量保持相同的随机IP
+		ckUserMUID, _ := req.Cookie(User_MUID_COOKIE_NAME)
+		ckUserKievRPSSecAuth, _ := req.Cookie(USER_KievRPSSecAuth_COOKIE_NAME)
+		ckUserRwBf, _ := req.Cookie(USER_RwBf_COOKIE_NAME)
+		ckUserToken, _ := req.Cookie(USER_TOKEN_COOKIE_NAME) // 未登录用户
+
 		if strings.Contains(req.Referer(), "web/compose.html") {
 			req.Header.Set("Referer", fmt.Sprintf("%s/edgesvc/compose", EDGE_SVC_URL.String()))
 			req.Header.Set("Origin", EDGE_SVC_URL.String())
 		} else if strings.Contains(originalPath, "/sydney/") {
-			req.Header.Set("Referer", fmt.Sprintf("%s/chat?q=Bing+AI", BING_URL.String()))
+			req.Header.Set("Referer", fmt.Sprintf("%s/chat?q=Microsoft+Copilot", BING_URL.String()))
 			req.Header.Set("Origin", BING_URL.String())
 			req.Header.Set("Host", BING_SYDNEY_URL.Host)
+			req.Header.Del("Cookie")
 		} else {
-			req.Header.Set("Referer", fmt.Sprintf("%s/chat?q=Bing+AI", BING_URL.String()))
+			req.Header.Set("Referer", fmt.Sprintf("%s/chat?q=Microsoft+Copilot", BING_URL.String()))
 			req.Header.Set("Origin", target.String())
 		}
 
-		// 同一会话尽量保持相同的随机IP
-		ckRandIP, _ := req.Cookie(RAND_IP_COOKIE_NAME)
 		if ckRandIP != nil && ckRandIP.Value != "" {
 			randIP = ckRandIP.Value
 		}
@@ -119,7 +126,6 @@ func NewSingleHostReverseProxy(target *url.URL) *httputil.ReverseProxy {
 		}
 		req.Header.Set("X-Forwarded-For", randIP)
 
-		ckUserMUID, _ := req.Cookie(User_MUID_COOKIE_NAME)
 		if (ckUserMUID == nil || ckUserMUID.Value == "") && USER_MUID != "" {
 			// 添加 MUID Cookie
 			req.AddCookie(&http.Cookie{
@@ -128,7 +134,6 @@ func NewSingleHostReverseProxy(target *url.URL) *httputil.ReverseProxy {
 			})
 		}
 
-		ckUserKievRPSSecAuth, _ := req.Cookie(USER_KievRPSSecAuth_COOKIE_NAME)
 		if (ckUserKievRPSSecAuth == nil || ckUserKievRPSSecAuth.Value == "") && USER_KievRPSSecAuth != "" {
 			// 添加 KievRPSSecAuth Cookie
 			req.AddCookie(&http.Cookie{
@@ -137,7 +142,6 @@ func NewSingleHostReverseProxy(target *url.URL) *httputil.ReverseProxy {
 			})
 		}
 
-		ckUserRwBf, _ := req.Cookie(USER_RwBf_COOKIE_NAME)
 		if (ckUserRwBf == nil || ckUserRwBf.Value == "") && USER_RwBf != "" {
 			// 添加 RwBf Cookie
 			req.AddCookie(&http.Cookie{
@@ -146,8 +150,6 @@ func NewSingleHostReverseProxy(target *url.URL) *httputil.ReverseProxy {
 			})
 		}
 
-		// 未登录用户
-		ckUserToken, _ := req.Cookie(USER_TOKEN_COOKIE_NAME)
 		if ckUserToken == nil || ckUserToken.Value == "" {
 			randCKIndex, randCkVal := getRandCookie(req)
 			if randCkVal != "" {
@@ -161,6 +163,39 @@ func NewSingleHostReverseProxy(target *url.URL) *httputil.ReverseProxy {
 			// if !strings.Contains(ua, "iPhone") || !strings.Contains(ua, "Mobile") {
 			// 	req.Header.Set("User-Agent", "iPhone Mobile "+ua)
 			// }
+		}
+
+		if strings.Contains(originalPath, "/sydney/") {
+			if ckUserMUID != nil && ckUserMUID.Value != "" {
+				req.AddCookie(&http.Cookie{
+					Name:  User_MUID_COOKIE_NAME,
+					Value: ckUserMUID.Value,
+				})
+			}
+			if ckUserKievRPSSecAuth != nil && ckUserKievRPSSecAuth.Value != "" {
+				req.AddCookie(&http.Cookie{
+					Name:  USER_KievRPSSecAuth_COOKIE_NAME,
+					Value: ckUserKievRPSSecAuth.Value,
+				})
+			}
+			if ckUserRwBf != nil && ckUserRwBf.Value != "" {
+				req.AddCookie(&http.Cookie{
+					Name:  USER_RwBf_COOKIE_NAME,
+					Value: ckUserRwBf.Value,
+				})
+			}
+			if ckUserToken != nil && ckUserToken.Value != "" {
+				req.AddCookie(&http.Cookie{
+					Name:  USER_TOKEN_COOKIE_NAME,
+					Value: ckUserToken.Value,
+				})
+			}
+			if cct != nil && cct.Value != "" {
+				req.AddCookie(&http.Cookie{
+					Name:  CLOUDFLARE_CHALLENGE_TOKEN_COOKIE_NAME,
+					Value: cct.Value,
+				})
+			}
 		}
 
 		ua := req.UserAgent()
@@ -178,6 +213,8 @@ func NewSingleHostReverseProxy(target *url.URL) *httputil.ReverseProxy {
 				req.Header.Del(hKey)
 			}
 		}
+
+		// req.Header.Set("Accept-Language", "zh-CN,zh;q=0.9")
 
 		// reqHeaderByte, _ := json.Marshal(req.Header)
 		// log.Println("剩余请求头 ： ", string(reqHeaderByte))
