@@ -546,6 +546,21 @@ export default {
       return pass(request, cookies);
     }
 
+    const cookieStr = cookies;
+    let cookieObjects = {};
+    cookieStr.split(';').forEach(item => {
+      if (!item) {
+        return;
+      }
+      const arr = item.split('=');
+      const key = arr[0].trim();
+      const val = arr.slice(1, arr.length+1).join('=').trim();
+      cookieObjects[key] = val;
+    })
+    delete cookieObjects['BingAI_Rand_IP'];
+
+    cookies = Object.keys(cookieObjects).map(key => key + '=' + cookieObjects[key]).join('; ');
+
     newHeaders.set('Cookie', cookies);
     const oldUA = request.headers.get('user-agent') || '';
     const isMobile = oldUA.includes('Mobile') || oldUA.includes('Android');
