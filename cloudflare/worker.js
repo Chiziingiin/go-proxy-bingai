@@ -12,6 +12,8 @@ const CUSTOM_OPTIONS = {
   APIKEY: '',
   Go_Proxy_BingAI_BLANK_API_KEY: false,
 
+  Go_Proxy_BingAI_AUTH_KEY: '',
+
   INFO: '',
   NIGHTLY: false,
 }
@@ -19,6 +21,9 @@ const CUSTOM_OPTIONS = {
 const WEB_CONFIG = {
   WORKER_URL: '', // 如无特殊需求请，保持为''
 };
+
+const RAND_IP_COOKIE_NAME = 'BingAI_Rand_IP';
+const AUTH_KEY_COOKIE_NAME = 'BingAI_Auth_Key';
 
 const SYDNEY_ORIGIN = 'https://sydney.bing.com';
 const BING_ORIGIN = 'https://www.bing.com';
@@ -446,6 +451,7 @@ export default {
     CUSTOM_OPTIONS.Go_Proxy_BingAI_BLANK_API_KEY = (env.Go_Proxy_BingAI_BLANK_API_KEY != '' && env.Go_Proxy_BingAI_BLANK_API_KEY != undefined &&env.Go_Proxy_BingAI_BLANK_API_KEY != null);
     CUSTOM_OPTIONS.INFO = env.INFO || '';
     CUSTOM_OPTIONS.NIGHTLY = (env.NIGHTLY != '' && env.NIGHTLY != undefined && env.NIGHTLY != null);
+    CUSTOM_OPTIONS.Go_Proxy_BingAI_AUTH_KEY = env.Go_Proxy_BingAI_AUTH_KEY || '';
 
     const currentUrl = new URL(request.url);
     if (WEB_CONFIG.WORKER_URL == '') {
@@ -456,7 +462,24 @@ export default {
       return home(currentUrl.pathname);
     }
     if (currentUrl.pathname.startsWith('/sysconf')) {
-      return Response.json({ code: 200, message: 'success', data: { isSysCK: false, isAuth: true, info: CUSTOM_OPTIONS.INFO } })
+      let isAuth = true;
+      if (CUSTOM_OPTIONS.Go_Proxy_BingAI_AUTH_KEY.length !== 0) {
+        const cookieStr = request.headers.get('Cookie') || '';
+        let cookieObjects = {};
+        cookieStr.split(';').forEach(item => {
+          if (!item) {
+            return;
+          }
+          const arr = item.split('=');
+          const key = arr[0].trim();
+          const val = arr.slice(1, arr.length+1).join('=').trim();
+          cookieObjects[key] = val;
+        })
+        if (cookieObjects[AUTH_KEY_COOKIE_NAME] !== CUSTOM_OPTIONS.Go_Proxy_BingAI_AUTH_KEY) {
+          isAuth = false;
+        }
+      }
+      return Response.json({ code: 200, message: 'success', data: { isSysCK: false, isAuth: isAuth, info: CUSTOM_OPTIONS.INFO } })
     }
     let targetUrl;
     if (currentUrl.pathname.startsWith('/sydney')) {
@@ -557,7 +580,7 @@ export default {
       const val = arr.slice(1, arr.length+1).join('=').trim();
       cookieObjects[key] = val;
     })
-    delete cookieObjects['BingAI_Rand_IP'];
+    delete cookieObjects[RAND_IP_COOKIE_NAME];
 
     cookies = Object.keys(cookieObjects).map(key => key + '=' + cookieObjects[key]).join('; ');
 
