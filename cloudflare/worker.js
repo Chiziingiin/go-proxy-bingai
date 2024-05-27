@@ -120,9 +120,9 @@ const rewriteBody = async (res) => {
 const home = async (pathname) => {
   let baseUrl;
   if (CUSTOM_OPTIONS.NIGHTLY) {
-    baseUrl = 'https://raw.githubusercontent.com/Harry-zklcdc/go-proxy-bingai/nightly/';
+    baseUrl = 'https://raw.githubusercontent.com/Chiziingiin/go-proxy-bingai/nightly/';
   } else {
-    baseUrl = 'https://raw.githubusercontent.com/Harry-zklcdc/go-proxy-bingai/master/';
+    baseUrl = 'https://raw.githubusercontent.com/Chiziingiin/go-proxy-bingai/master/';
   }
   let url;
   if (pathname.indexOf('/web/') === 0) {
